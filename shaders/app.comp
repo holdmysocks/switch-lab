@@ -1,0 +1,40 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+layout(local_size_x=1) in;
+#include "abi.glsl"
+#include "hb.glsl"
+
+void requestNfc(){
+ if(!hbAvailable()||hbBusy())return;
+ if(hbScanNfc())c.game.x=1u;
+}
+void main(){
+ uint pressed=hbPressed();
+ if((pressed&(HB_B|HB_MINUS))!=0u)hbExit();
+ if((pressed&HB_Y)!=0u)requestNfc();
+ bool touching=hbTouchCount()>0u&&(c.touch[6]&2u)==0u;
+ if(touching&&c.game.w==0u){
+  vec2 p=hbTouch(0u);
+  if(p.y<80.0&&p.x>=1060.0)requestNfc();
+ }
+ c.game.w=touching?1u:0u;
+ c.stats.x=hbAvailable()?hbWord(12u):0u;
+ c.stats.y=hbTouchCount();
+ c.stats.z=hbButtons();
+ c.stats.w=hbBusy()?1u:0u;
+ uint keys=(hbKey(26u)?1u:0u)|(hbKey(4u)?2u:0u)|(hbKey(22u)?4u:0u)|(hbKey(7u)?8u:0u);
+ c.game.y|=keys;c.game.z=keys;
+ if(c.game.x==1u&&!hbBusy()){
+  if(hbResult()!=0u||hbResponseBytes()<16u)c.game.x=4u;
+  else if(hbResponseByte(4u)==0u)c.game.x=3u;
+  else c.game.x=hbResponseBytes()>=104u?2u:4u;
+ }
+ c.flow.xyz=hbAcceleration(0u);
+ c.transition.yzw=hbGyroscope(0u);
+ vec2 delta=hbJoyMouseDelta(0u,1u,c.rows[1]);
+ c.motion.yz=clamp(c.motion.yz+delta*1.5,vec2(1110.0,770.0),vec2(1810.0,985.0));
+ c.rows[2]=hbJoyMouseAttributes(0u,1u);
+ c.motion.x+=1.0/60.0;c.state.z++;
+ c.transition.x=max(0.0,c.transition.x-1.0/15.0);
+ hbEndFrame();
+}

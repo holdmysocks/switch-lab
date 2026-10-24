@@ -1,0 +1,20 @@
+{
+  "format": "hblauncher.gpu-app",
+  "abi": 1,
+  "id": "switch-lab",
+  "name": "Switch Lab",
+  "version": "0.5.0",
+  "description": "Explore touch, motion, Joy-Con mouse and NFC",
+  "icon": "assets/icon.png",
+  "initialState": "assets/state.bin",
+  "data": "assets/text.bin",
+  "shaders": {
+    "vertex": "app.vert.spv",
+    "fragment": "app.frag.spv",
+    "compute": "app.comp.spv"
+  },
+  "sdk": {
+    "version": 1,
+    "capabilities": ["nfc"]
+  }
+}
